@@ -1,7 +1,9 @@
 package com.udacity.webcrawler.json;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -43,8 +45,10 @@ public final class ConfigurationLoader {
    */
   public static CrawlerConfiguration read(Reader reader) {
     ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.disable(JsonParser.Feature.AUTO_CLOSE_SOURCE);
     try {
-      return objectMapper.readValue(reader, CrawlerConfiguration.class);
+      return objectMapper.readValue(reader, CrawlerConfiguration.Builder.class).build();
+//      return objectMapper.readValue(reader, CrawlerConfiguration.class);
     } catch (Exception e) {
       e.getLocalizedMessage();
       return null;
