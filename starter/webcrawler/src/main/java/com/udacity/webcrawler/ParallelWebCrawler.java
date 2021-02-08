@@ -112,9 +112,11 @@ final class ParallelWebCrawler implements WebCrawler {
           counts.put(e.getKey(), e.getValue());
         }
       }
+      List<WebCrawlAction> webCrawlActionList = new ArrayList<>();
       for (String link : result.getLinks()) {
-        new WebCrawlAction(counts, visitedUrls, link, deadline, maxDepth - 1);
+        webCrawlActionList.add(new WebCrawlAction(counts, visitedUrls, link, deadline, maxDepth - 1));
       }
+      invokeAll(webCrawlActionList);
     }
   }
 }
