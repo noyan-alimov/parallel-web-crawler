@@ -11,26 +11,71 @@ Q1. Run the web crawler using the configurations located at src/main/config/writ
 
     Why did the parser take more time when run with ParallelWebCrawler?
 
+    Because ParallelWebCrawler parser did much more work compared to SequentialWebCrawler.
+    Parallel crawler visited 39 urls, whereas sequential crawler visited 7.
+
+    SequentialCrawler output:
+    Run at Mon, 8 Feb 2021 18:21:29 GMT
+    com.udacity.webcrawler.SequentialWebCrawler#crawl took 0m 2s 258ms
+    com.udacity.webcrawler.parser.PageParserImpl#parse took 0m 2s 233ms
+
+    {"wordCounts":{"data":256,"learning":136,"program":104,"udacity":101,"with":100},"urlsVisited":7}
+
+
+    ParallelCrawler output:
+    Run at Mon, 8 Feb 2021 18:24:12 GMT
+    com.udacity.webcrawler.ParallelWebCrawler#crawl took 0m 2s 902ms
+    com.udacity.webcrawler.parser.PageParserImpl#parse took 0m 13s 251ms
+
+    {"wordCounts":{"data":998,"udacity":722,"with":691,"learning":686,"program":671},"urlsVisited":39}
+
 
 Q2. Your manager ran your crawler on her old personal computer, using the configurations from Q1, and she notices that
     the sequential crawler actually outperforms the parallel crawler. She would like to know why.
 
     (a) Suggest one reason why the sequential web crawler was able to read more web pages than the parallel crawler.
         (Hint: Try setting "parallelism" to 1 in the JSON configs to simulate your manager's computer.)
+        Parallel crawler brings no benefit to her old computer that has 1 thread. In fact, it's more costly for her computer
+        to use parallel crawler than sequential, because parallel crawler takes more resources to create, use
+        and shut down a forkjoin pool.
 
     (b) Suggest one scenario in which the parallel web crawler will almost certainly perform better than the sequential
         crawler. Why will it perform better?
+        Parallel crawler will always perform better on a multi-core computer because more work will be done at certain amount
+        of time. More work will be done because pool works by splitting work across processors. The work stealing algorithm
+        that is implemented by the forkjoin pool ensures that every thread is busy and working.
 
 
 Q3. Analyze your method profiler through the lens of Aspect Oriented Programming, by answering the following questions:
 
     (a) What cross-cutting concern is being addressed by the com.udacity.webcrawler.profiler.Profiler class?
+    If we want to measure how long a certain method runs in our app, we can simply annotate it with @Profiled.
+    This flexible ability is a cross-cutting concern.
 
     (b) What are the join points of the Profiler in the web crawler program?
+    Methods that are annotated with @Profiled annotation.
 
 
 Q4. Identify three (3) different design patterns used in this project, and explain which interfaces, classes, and/or
     libraries use or implement those design patterns.
+
+    1. Builder Pattern: In cases where we are faced with many constructor parameters, we used the builder pattern to
+        provide more readable and cleaner APIs. For instance, CrawlerConfiguration uses the builder patten to load properties from
+        the given configuration file into the object using jackson.
+        This pattern is really helpful when constructing complex objects, but it doesn't make sense to use it to construct fairly simple
+        objects with few properties.
+
+    2. Dependency Injection: We used google's Guice library to inject dependencies in most parts of our application.
+        Example: WebCrawlerMain that injects Webcrawler and Profiler classes.
+        Since we do not have to manually construct dependencies, our code becomes fairly simpler and easy to manage. Again, the
+        complexities of manually constructing every dependency down the tree is lifted.
+
+    3. Singleton Pattern: When injecting some of our dependencies with Guice, we specified that we need only single instances with the
+        @Singleton annotation. This makes sure that only one instance of the injected classes are loaded into the application and recycled
+        when needed. Although singletons can be good when object creation is heavy, they do not fare well in multithreaded environments especially
+        when there is mutually shared data to be mutated. Singletons make unit testing very difficult by introducing a global state therefore,
+        making it difficult to mock objects.
+        However, as mentioned above, Singletons really shine when object creation is heavy and we want to only do so once in out app.
 
     For each pattern, name one thing about the pattern that you LIKED, and one thing you DISLIKED. If you did not like
     anything, you can name two things you disliked.
