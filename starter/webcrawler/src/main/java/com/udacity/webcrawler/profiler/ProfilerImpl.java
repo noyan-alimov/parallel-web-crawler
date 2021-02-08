@@ -67,6 +67,7 @@ final class ProfilerImpl implements Profiler {
     }
     BufferedWriter writer = Files.newBufferedWriter(path);
     writeData(writer);
+    writer.flush();
   }
 
   @Override
